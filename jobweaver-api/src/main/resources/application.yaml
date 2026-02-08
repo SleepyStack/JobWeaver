@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/jobweaver
+    url: jdbc:postgresql://localhost:5432/jobweaver?options=-c%20TimeZone=Asia/Kolkata
     username: jobweaver
     password: jobweaver
 
