@@ -5,6 +5,7 @@ import com.jobweaver.common.model.JobType;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
 import org.springframework.data.annotation.CreatedDate;
@@ -75,5 +76,12 @@ public class Job {
         this.retryCount++;
         this.lastError = error;
         this.completedAt = LocalDateTime.now();
+    }
+
+    public Job(JobType type, Map<String, Object> payload, JobStatus status, int maxRetryCount) {
+        this.type = type;
+        this.payload = payload;
+        this.status = status;
+        this.maxRetryCount = maxRetryCount;
     }
 }
