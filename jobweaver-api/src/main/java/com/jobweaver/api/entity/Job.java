@@ -2,12 +2,12 @@ package com.jobweaver.api.entity;
 
 import com.jobweaver.common.model.JobStatus;
 import com.jobweaver.common.model.JobType;
-import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -17,18 +17,20 @@ import java.util.Map;
 import java.util.UUID;
 
 @Entity
+@Table(name = "jobs")
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor
 @AllArgsConstructor
 public class Job {
     @Id
     @GeneratedValue
+    @UuidGenerator
     private UUID id;
 
     @Enumerated(EnumType.STRING)
     private JobType type;
 
-    @Type(JsonType.class)
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private Map<String, Object> payload;
 
@@ -36,7 +38,7 @@ public class Job {
     private JobStatus status;
 
     private int retryCount;
-    private int maxRetryCount;
+    private int maxRetries;
 
     private String workerId;
     private String lastError;
@@ -82,6 +84,6 @@ public class Job {
         this.type = type;
         this.payload = payload;
         this.status = status;
-        this.maxRetryCount = maxRetryCount;
+        this.maxRetries = maxRetryCount;
     }
 }

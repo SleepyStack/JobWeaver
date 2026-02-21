@@ -42,6 +42,8 @@ services:
         condition: service_healthy
     ports:
       - "9092:9092"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -56,3 +58,4 @@ services:
 
 volumes:
   postgres_data:
+  kafka_data:

@@ -9,7 +9,10 @@ public record JobRequest(
         @NonNull
         JobType jobType,
 
+        @NonNull
         Map<String, Object> payload,
+
+        @NonNull
         int MaxRetryCount
                          )
 {}
