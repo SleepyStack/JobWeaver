@@ -1,4 +1,4 @@
-package com.jobweaver.jobweaverworker;
+package com.jobweaver.worker;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
