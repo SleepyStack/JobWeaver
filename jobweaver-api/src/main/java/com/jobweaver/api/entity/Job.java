@@ -6,6 +6,7 @@ import com.jobweaver.common.model.JobStatus;
 import com.jobweaver.common.model.JobType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
@@ -23,6 +24,7 @@ import java.util.UUID;
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
 public class Job {
     @Id
     @GeneratedValue

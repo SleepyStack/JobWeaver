@@ -12,7 +12,6 @@ public record JobRequest(
         @NonNull
         Map<String, Object> payload,
 
-        @NonNull
-        int MaxRetryCount
+        int maxRetryCount
                          )
 {}
