@@ -1,5 +1,7 @@
 package com.jobweaver.api.entity;
 
+import com.jobweaver.api.exceptions.ApiException;
+import com.jobweaver.api.exceptions.ErrorCode;
 import com.jobweaver.common.model.JobStatus;
 import com.jobweaver.common.model.JobType;
 import jakarta.persistence.*;
@@ -55,7 +57,7 @@ public class Job {
 
     public void markAsRunning(String workerId) {
         if (this.status != JobStatus.QUEUED)
-            throw new IllegalStateException("Only QUEUED jobs can start");
+            throw new ApiException("Only QUEUED jobs can start", ErrorCode.INVALID_STATE_TRANSITION, this.id);
 
         this.status = JobStatus.RUNNING;
         this.workerId = workerId;
@@ -64,7 +66,7 @@ public class Job {
 
     public void markAsSuccess() {
         if (this.status != JobStatus.RUNNING)
-            throw new IllegalStateException("Only RUNNING jobs can succeed");
+            throw new ApiException("Only RUNNING jobs can succeed", ErrorCode.INVALID_STATE_TRANSITION, this.id);
 
         this.status = JobStatus.SUCCESS;
         this.completedAt = LocalDateTime.now();
@@ -72,7 +74,7 @@ public class Job {
 
     public void markAsFailed(String error) {
         if (this.status != JobStatus.RUNNING)
-            throw new IllegalStateException("Only RUNNING jobs can fail");
+            throw new ApiException("Only RUNNING jobs can fail", ErrorCode.INVALID_STATE_TRANSITION, this.id);
 
         this.status = JobStatus.FAILED;
         this.retryCount++;
