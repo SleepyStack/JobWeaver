@@ -2,6 +2,8 @@
 
 A distributed job processing platform built using a microservices architecture.
 
+##Project Status : MVP complete, ready for next phase.
+
 ## 📋 Table of Contents
 - [Tech Stack](#-tech-stack)
 - [Project Structure](#-project-structure)
