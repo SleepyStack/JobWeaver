@@ -3,6 +3,7 @@ CREATE TABLE jobs (
                       type VARCHAR(50),
                       payload JSONB,
                       status VARCHAR(50),
+                      trace_id UUID,
                       retry_count INT DEFAULT 0,
                       max_retries INT DEFAULT 0,
                       worker_id VARCHAR(255),

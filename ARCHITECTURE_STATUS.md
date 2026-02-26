@@ -1,4 +1,4 @@
-# 📊 JobWeaver — Architecture Status (Stage 2)
+📊 JobWeaver — Architecture Status (Stage 2)
 
 > Last updated: 2026-02-24
 

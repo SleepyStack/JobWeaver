@@ -41,6 +41,8 @@ public class Job {
     @Enumerated(EnumType.STRING)
     private JobStatus status;
 
+    private UUID traceId;
+
     private int retryCount;
     private int maxRetries;
 
