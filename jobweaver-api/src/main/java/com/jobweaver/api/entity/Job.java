@@ -59,33 +59,6 @@ public class Job {
 
     private boolean cancelRequested;
 
-    public void markAsRunning(String workerId) {
-        if (this.status != JobStatus.QUEUED)
-            throw new ApiException("Only QUEUED jobs can start", ErrorCode.INVALID_STATE_TRANSITION, this.id);
-
-        this.status = JobStatus.RUNNING;
-        this.workerId = workerId;
-        this.startedAt = LocalDateTime.now();
-    }
-
-    public void markAsSuccess() {
-        if (this.status != JobStatus.RUNNING)
-            throw new ApiException("Only RUNNING jobs can succeed", ErrorCode.INVALID_STATE_TRANSITION, this.id);
-
-        this.status = JobStatus.SUCCESS;
-        this.completedAt = LocalDateTime.now();
-    }
-
-    public void markAsFailed(String error) {
-        if (this.status != JobStatus.RUNNING)
-            throw new ApiException("Only RUNNING jobs can fail", ErrorCode.INVALID_STATE_TRANSITION, this.id);
-
-        this.status = JobStatus.FAILED;
-        this.retryCount++;
-        this.lastError = error;
-        this.completedAt = LocalDateTime.now();
-    }
-
     public Job(JobType type, Map<String, Object> payload, JobStatus status, int maxRetryCount) {
         this.type = type;
         this.payload = payload;
