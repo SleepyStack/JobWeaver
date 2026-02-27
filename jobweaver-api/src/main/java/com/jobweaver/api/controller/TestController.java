@@ -1,8 +1,8 @@
 package com.jobweaver.api.controller;
 
 import com.jobweaver.api.dto.JobRequest;
+import com.jobweaver.api.entity.JobType;
 import com.jobweaver.api.service.JobService;
-import com.jobweaver.common.model.JobType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

@@ -1,11 +1,7 @@
 package com.jobweaver.api.entity;
 
-import com.jobweaver.api.exceptions.ApiException;
-import com.jobweaver.api.exceptions.ErrorCode;
-import com.jobweaver.common.model.JobStatus;
-import com.jobweaver.common.model.JobType;
+import com.jobweaver.api.entity.simulation.SimulationInstruction;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -15,15 +11,15 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
-import java.util.Map;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "jobs")
+@Table(name = "jobs",indexes = {@Index(name = "idx_jobs_trace_id", columnList = "traceId"),
+                            @Index(name = "idx_jobs_created_at", columnList = "createdAt")}
+)
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor
-@AllArgsConstructor
 @Getter
 public class Job {
     @Id
@@ -31,38 +27,25 @@ public class Job {
     @UuidGenerator
     private UUID id;
 
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private JobType type;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
-    private Map<String, Object> payload;
+    @Column(columnDefinition = "jsonb",  nullable = false)
+    private SimulationInstruction instruction;
 
-    @Enumerated(EnumType.STRING)
-    private JobStatus status;
-
-    private UUID traceId;
-
-    private int retryCount;
-    private int maxRetries;
-
-    private String workerId;
-    private String lastError;
+    @Column(nullable = false)
+    private String traceId;
 
     @CreatedDate
-    private LocalDateTime createdAt;
+    private Instant createdAt;
     @LastModifiedDate
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
-    private LocalDateTime startedAt;
-    private LocalDateTime completedAt;
-
-    private boolean cancelRequested;
-
-    public Job(JobType type, Map<String, Object> payload, JobStatus status, int maxRetryCount) {
+    public Job(JobType type, SimulationInstruction instruction, String traceId) {
         this.type = type;
-        this.payload = payload;
-        this.status = status;
-        this.maxRetries = maxRetryCount;
+        this.instruction = instruction;
+        this.traceId = traceId;
     }
 }

@@ -4,7 +4,6 @@ import com.jobweaver.api.dto.JobRequest;
 import com.jobweaver.api.entity.Job;
 import com.jobweaver.api.kafka.JobEventProducer;
 import com.jobweaver.api.repository.JobRepository;
-import com.jobweaver.common.model.JobStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,16 +16,23 @@ public class JobService {
     private final JobRepository jobRepository;
     private final JobEventProducer jobEventProducer;
 
-    /**
-     * Minimal vertical-slice behavior:
-     * persist a QUEUED job and publish its id to Kafka for workers to pick up.
-     */
     public UUID submitJob(JobRequest req) {
-        Job job = new Job(req.jobType(), req.payload(), JobStatus.QUEUED, req.maxRetryCount());
+        String traceId = UUID.randomUUID().toString();
+
+        Job job = new Job(req.jobType(), req.payload(), JobStatus.QUEUED, traceId , req.maxRetryCount());
 
         Job saved = jobRepository.save(job);
-        jobEventProducer.sendMessage(saved.getId());
+
+        String eventId = UUID.randomUUID().toString();
+
+        jobEventProducer.sendMessage(saved.getId(),traceId, eventId );
         return saved.getId();
+    }
+
+
+
+    private UUID generateUUID() {
+        return UUID.randomUUID();
     }
 
 }

@@ -1,4 +1,4 @@
-package com.jobweaver.common.model;
+package com.jobweaver.api.entity;
 
 public enum JobType {
     CPU_TASK,

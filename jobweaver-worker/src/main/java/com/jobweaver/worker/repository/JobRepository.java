@@ -1,6 +1,5 @@
 package com.jobweaver.worker.repository;
 
-import com.jobweaver.worker.entity.Job;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;
