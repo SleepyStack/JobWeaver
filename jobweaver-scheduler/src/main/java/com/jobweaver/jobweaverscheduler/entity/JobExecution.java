@@ -14,9 +14,6 @@ import java.util.UUID;
 @Entity
 @Table(
         name = "job_executions",
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uk_job_execution_job_id", columnNames = "jobId")
-        },
         indexes = {
                 @Index(name = "idx_execution_status", columnList = "jobStatus"),
                 @Index(name = "idx_execution_next_run", columnList = "nextRunAt"),

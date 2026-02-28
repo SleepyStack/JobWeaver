@@ -1,6 +1,6 @@
 package com.jobweaver.worker.entity;
 
 public enum ExecutionOutcome {
-    SUCESS,
+    SUCCESS,
     FAILURE
 }

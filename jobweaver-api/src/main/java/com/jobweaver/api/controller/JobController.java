@@ -4,13 +4,12 @@ import com.jobweaver.api.dto.CreateJobResponse;
 import com.jobweaver.api.dto.JobRequest;
 import com.jobweaver.api.service.JobService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/jobs")
@@ -21,7 +20,7 @@ public class JobController {
 
     @PostMapping
     public ResponseEntity<CreateJobResponse> create(@RequestBody JobRequest request) {
-        UUID jobId = jobService.submitJob(request);
-        return ResponseEntity.ok(new CreateJobResponse(jobId));
+        CreateJobResponse response = jobService.submitJob(request);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
     }
 }

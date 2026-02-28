@@ -3,7 +3,7 @@ spring:
     name: jobweaver-scheduler
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/jobweaver
+    url: jdbc:postgresql://localhost:5433/jobweaver_scheduler
     username: jobweaver
     password: jobweaver
 

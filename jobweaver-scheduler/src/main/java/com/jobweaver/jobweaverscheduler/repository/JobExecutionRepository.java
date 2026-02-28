@@ -1,7 +1,9 @@
 package com.jobweaver.jobweaverscheduler.repository;
 
 import com.jobweaver.jobweaverscheduler.entity.JobExecution;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.Instant;
@@ -9,11 +11,14 @@ import java.util.List;
 import java.util.UUID;
 
 public interface JobExecutionRepository extends JpaRepository<JobExecution, UUID> {
-    @Query("""
-   SELECT j
-   FROM JobExecution j
-   WHERE j.jobStatus = 'PENDING'
-   AND j.nextRunAt <= :now
-""")
+
+    @Query(value = """
+        SELECT * FROM job_executions
+        WHERE job_status = 'PENDING'
+          AND next_run_at <= :now
+        ORDER BY next_run_at
+        LIMIT 50
+        FOR UPDATE SKIP LOCKED
+        """, nativeQuery = true)
     List<JobExecution> findReadyJobs(Instant now);
 }
