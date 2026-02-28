@@ -3,26 +3,32 @@ package com.jobweaver.worker.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 @Configuration
 public class ThreadPoolConfig {
 
-    /**
-     * 3 Kafka consumer threads × 4 processing threads each = 12 total.
-     * Each consumer dispatches work to this shared pool.
-     */
-    private static final int THREADS_PER_CONSUMER = 4;
     private static final int CONSUMER_COUNT = 3;
+    private static final int THREADS_PER_CONSUMER = 4;
+
+    private static final int MAX_THREADS =
+            CONSUMER_COUNT * THREADS_PER_CONSUMER;
+
+    private static final int QUEUE_CAPACITY = 100;
 
     @Bean(name = "jobProcessorExecutor", destroyMethod = "shutdown")
     public ExecutorService jobProcessorExecutor() {
-        return Executors.newFixedThreadPool(
-                CONSUMER_COUNT * THREADS_PER_CONSUMER,
+
+        return new ThreadPoolExecutor(
+                MAX_THREADS,
+                MAX_THREADS,
+                0L,
+                TimeUnit.MILLISECONDS,
+                new ArrayBlockingQueue<>(QUEUE_CAPACITY),
                 Thread.ofPlatform()
                         .name("job-processor-", 0)
-                        .factory()
+                        .factory(),
+                new ThreadPoolExecutor.CallerRunsPolicy()
         );
     }
 }

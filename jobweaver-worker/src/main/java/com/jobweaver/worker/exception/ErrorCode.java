@@ -3,7 +3,17 @@ package com.jobweaver.worker.exception;
 import com.jobweaver.common.exception.DomainErrorCode;
 
 public enum ErrorCode implements DomainErrorCode {
-    JOB_NOT_FOUND(404);
+
+    JOB_NOT_FOUND(404),
+
+    SIMULATION_FAILED(500),
+    SIMULATION_INTERRUPTED(500),
+
+    EVENT_PUBLISH_FAILED(500),
+
+    MALFORMED_RECORD(400),
+
+    OFFSET_COMMIT_FAILED(500);
 
     private final int httpStatus;
 

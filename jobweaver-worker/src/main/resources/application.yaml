@@ -1,6 +1,9 @@
 spring:
+  application:
+    name: jobweaver-worker
+
   datasource:
-    url: jdbc:postgresql://localhost:5432/jobweaver
+    url: jdbc:postgresql://localhost:5434/jobweaver_worker
     username: jobweaver
     password: jobweaver
 
@@ -16,13 +19,31 @@ spring:
     bootstrap-servers: localhost:9092
     consumer:
       group-id: jobweaver-workers
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "com.jobweaver.common.messaging"
+
+server:
+  port: 8082
+
+app:
+  kafka:
+    topics:
+      run-job: run-job
+      job-completed: job-completed
+      job-failed: job-failed
 
 management:
   endpoints:
     web:
       exposure:
         include: health,info
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+  datasource:
+    url: jdbc:postgresql://postgres-worker:5432/jobweaver_worker
+
+  kafka:
+    bootstrap-servers: kafka:29092

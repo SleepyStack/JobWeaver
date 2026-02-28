@@ -1,16 +1,16 @@
 package com.jobweaver.api.dto;
 
-import com.jobweaver.common.model.JobType;
+import com.jobweaver.common.messaging.enumeration.JobType;
+import com.jobweaver.common.messaging.simulation.SimulationInstruction;
 import lombok.NonNull;
 
-import java.util.Map;
 
 public record JobRequest(
         @NonNull
         JobType jobType,
 
         @NonNull
-        Map<String, Object> payload,
+        SimulationInstruction payload,
 
         int maxRetryCount
                          )

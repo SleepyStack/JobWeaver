@@ -1,49 +1,43 @@
 package com.jobweaver.worker.service;
 
-import com.jobweaver.worker.kafka.JobCreatedEvent;
-import com.jobweaver.worker.processing.JobProcessor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.kafka.annotation.KafkaListener;
+import com.jobweaver.common.messaging.events.RunJobEvent;
+import com.jobweaver.worker.kafka.WorkerEventPublisher;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.concurrent.ExecutorService;
+import java.util.UUID;
 
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class WorkerService {
 
-    private static final Logger log = LoggerFactory.getLogger(WorkerService.class);
+    private final ExecutionAttemptProcessor attemptProcessor;
+    private final WorkerEventPublisher eventPublisher;
 
-    private final ExecutorService executor;
-    private final JobProcessor jobProcessor;
+    public void process(UUID eventId, String traceId, RunJobEvent event) {
 
-    public WorkerService(@Qualifier("jobProcessorExecutor") ExecutorService executor,
-                         JobProcessor jobProcessor) {
-        this.executor = executor;
-        this.jobProcessor = jobProcessor;
-    }
+        log.info("Processing job eventId={}", eventId);
 
-    /**
-     * Kafka listener — one thread per partition (3 partitions).
-     * Each message is immediately dispatched to the shared thread pool
-     * (12 threads = 4 per consumer) so the consumer can keep polling.
-     */
-    @KafkaListener(
-            topics = "job-execution-topic",
-            groupId = "worker-group"
-    )
-    public void listen(JobCreatedEvent event) {
-        log.info("Received job event: jobId={} on thread {}",
-                event.getJobId(), Thread.currentThread().getName());
+        ProcessingResult result = attemptProcessor.executeTransaction(eventId, traceId, event);
 
-        executor.submit(() -> {
-            try {
-                jobProcessor.process(event.getJobId());
-            } catch (Exception ex) {
-                log.error("Unhandled error processing job {}: {}",
-                        event.getJobId(), ex.getMessage(), ex);
-            }
-        });
+        if (result.duplicate()) {
+            log.debug("Duplicate event {} — republishing outcome", eventId);
+        }
+
+        if (result.success()) {
+            log.info("Job execution succeeded — publishing completion event");
+            eventPublisher.publishSuccess(event.jobId(), traceId);
+        } else if (result.failure()) {
+            log.info("Job execution failed — publishing failure event error={}",
+                    result.errorMessage());
+            eventPublisher.publishFailure(
+                    event.jobId(),
+                    result.errorMessage(),
+                    traceId);
+        } else {
+            log.debug("Duplicate running event {} — skipping", eventId);
+        }
     }
 }

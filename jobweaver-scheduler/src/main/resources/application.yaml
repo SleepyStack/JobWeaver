@@ -1,6 +1,9 @@
 spring:
+  application:
+    name: jobweaver-scheduler
+
   datasource:
-    url: jdbc:postgresql://localhost:5432/jobweaver
+    url: jdbc:postgresql://localhost:5433/jobweaver_scheduler
     username: jobweaver
     password: jobweaver
 
@@ -9,20 +12,38 @@ spring:
       ddl-auto: validate
 
   flyway:
-    enabled: false
+    enabled: true
     locations: classpath:db/migration
 
   kafka:
     bootstrap-servers: localhost:9092
-    consumer:
-      group-id: jobweaver-workers
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "com.jobweaver.common.messaging"
+
+server:
+  port: 8081
+
+app:
+  kafka:
+    topics:
+      job-created: job-created
+      job-completed: job-completed
+      job-failed: job-failed
+      run-job: run-job
+      job-dead-letter: job-dead-letter
 
 management:
   endpoints:
     web:
       exposure:
         include: health,info
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+  datasource:
+    url: jdbc:postgresql://postgres-scheduler:5432/jobweaver_scheduler
+
+  kafka:
+    bootstrap-servers: kafka:29092
