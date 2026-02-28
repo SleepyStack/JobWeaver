@@ -17,7 +17,7 @@ public class JobCompletedListener {
 
     @KafkaListener(
             topics = "${app.kafka.topics.job-completed}",
-            containerFactory = "kafkaListenerContainerFactory"
+            containerFactory = "jobCompletedListenerFactory"
     )
     public void handleCompleted(JobCompletedEvent event,
                                 @Header("traceId") String traceId,

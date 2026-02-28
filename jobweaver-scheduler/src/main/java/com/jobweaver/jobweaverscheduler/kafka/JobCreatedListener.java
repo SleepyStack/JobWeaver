@@ -18,7 +18,7 @@ public class JobCreatedListener {
 
     @KafkaListener(
             topics = "${app.kafka.topics.job-created}",
-            containerFactory = "kafkaListenerContainerFactory"
+            containerFactory = "jobCreatedListenerFactory"
     )
     public void handle(JobCreatedEvent event,
                        @Header("traceId") String traceId,

@@ -1,5 +1,6 @@
 package com.jobweaver.worker.entity;
 
+import com.jobweaver.common.messaging.enumeration.ExecutionOutcome;
 import jakarta.persistence.*;
 import lombok.NoArgsConstructor;
 
@@ -28,6 +29,9 @@ public class ExecutionAttempt {
     private UUID jobId;
 
     @Column(nullable = false)
+    private String traceId;
+
+    @Column(nullable = false)
     private Instant startedAt;
 
     private Instant finishedAt;
@@ -35,4 +39,7 @@ public class ExecutionAttempt {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private ExecutionOutcome outcome;
+
+    @Column(length = 2000)
+    private String errorMessage;
 }

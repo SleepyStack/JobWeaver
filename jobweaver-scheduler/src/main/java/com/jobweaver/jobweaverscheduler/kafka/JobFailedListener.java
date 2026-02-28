@@ -17,7 +17,7 @@ public class JobFailedListener {
 
     @KafkaListener(
             topics = "${app.kafka.topics.job-failed}",
-            containerFactory = "kafkaListenerContainerFactory"
+            containerFactory = "jobFailedListenerFactory"
     )
     public void handleFailed(JobFailedEvent event,
                              @Header("traceId") String traceId,

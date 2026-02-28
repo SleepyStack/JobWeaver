@@ -1,4 +1,4 @@
-package com.jobweaver.worker.entity;
+package com.jobweaver.common.messaging.enumeration;
 
 public enum ExecutionOutcome {
     SUCCESS,
