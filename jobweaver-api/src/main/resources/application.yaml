@@ -1,4 +1,7 @@
 spring:
+  application:
+    name: jobweaver-api
+
   datasource:
     url: jdbc:postgresql://localhost:5432/jobweaver?options=-c%20TimeZone=Asia/Kolkata
     username: jobweaver
@@ -18,9 +21,11 @@ spring:
 
   kafka:
     bootstrap-servers: localhost:9092
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+app:
+  kafka:
+    topics:
+      job-created: job-created
 
 management:
   endpoints:

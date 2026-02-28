@@ -1,9 +1,15 @@
 package com.jobweaver.jobweaverscheduler.entity;
 
+import com.jobweaver.common.messaging.simulation.SimulationInstruction;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.util.UUID;
+
 
 @Entity
 @Table(
@@ -17,6 +23,8 @@ import java.util.UUID;
                 @Index(name = "idx_execution_trace_id", columnList = "traceId")
         }
 )
+@NoArgsConstructor
+@Getter
 public class JobExecution {
 
     @Id
@@ -25,6 +33,10 @@ public class JobExecution {
 
     @Column(nullable = false)
     private String traceId;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb",  nullable = false)
+    private SimulationInstruction instruction;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -43,4 +55,43 @@ public class JobExecution {
     private Instant updatedAt;
 
     private String lastError;
+
+    @Version
+    private long version;
+
+    public JobExecution(UUID jobId, String traceId, SimulationInstruction instruction, JobStatus jobStatus, int retryCount, int maxRetries, Instant nextRunAt, Instant updatedAt, String lastError) {
+        this.jobId = jobId;
+        this.traceId = traceId;
+        this.instruction = instruction;
+        this.jobStatus = jobStatus;
+        this.retryCount = retryCount;
+        this.maxRetries = maxRetries;
+        this.nextRunAt = nextRunAt;
+        this.updatedAt = updatedAt;
+        this.lastError = lastError;
+    }
+
+    public void markAsRunning() {
+        this.jobStatus = JobStatus.RUNNING;
+        this.updatedAt = Instant.now();
+    }
+    public void markAsCompleted() {
+        this.jobStatus = JobStatus.COMPLETED;
+        this.updatedAt = Instant.now();
+    }
+    public void markAsFailed() {
+        this.jobStatus = JobStatus.FAILED;
+        this.updatedAt = Instant.now();
+    }
+    public void incrementRetryCount() {
+        this.retryCount++;
+    }
+    public void setError(String error) {
+        this.lastError = error;
+    }
+    public void scheduleRetry(Instant nextRunAt) {
+        this.jobStatus = JobStatus.PENDING;
+        this.nextRunAt = nextRunAt;
+        this.updatedAt = Instant.now();
+    }
 }

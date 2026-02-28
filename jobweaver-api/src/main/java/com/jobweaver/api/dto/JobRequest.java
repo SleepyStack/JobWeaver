@@ -1,7 +1,7 @@
 package com.jobweaver.api.dto;
 
-import com.jobweaver.api.entity.simulation.SimulationInstruction;
-import com.jobweaver.common.model.JobType;
+import com.jobweaver.common.messaging.enumeration.JobType;
+import com.jobweaver.common.messaging.simulation.SimulationInstruction;
 import lombok.NonNull;
 
 

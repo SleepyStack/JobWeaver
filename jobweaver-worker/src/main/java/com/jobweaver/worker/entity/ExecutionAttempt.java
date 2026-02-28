@@ -1,6 +1,7 @@
 package com.jobweaver.worker.entity;
 
 import jakarta.persistence.*;
+import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -16,6 +17,7 @@ import java.util.UUID;
                 @Index(name = "idx_execution_started_at", columnList = "startedAt")
         }
 )
+@NoArgsConstructor
 public class ExecutionAttempt {
 
     @Id

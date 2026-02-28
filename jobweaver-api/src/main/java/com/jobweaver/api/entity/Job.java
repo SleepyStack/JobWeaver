@@ -1,6 +1,7 @@
 package com.jobweaver.api.entity;
 
-import com.jobweaver.api.entity.simulation.SimulationInstruction;
+import com.jobweaver.common.messaging.enumeration.JobType;
+import com.jobweaver.common.messaging.simulation.SimulationInstruction;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

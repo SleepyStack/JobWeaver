@@ -1,4 +1,4 @@
-package com.jobweaver.api.entity.simulation;
+package com.jobweaver.common.messaging.simulation;
 
 import java.util.List;
 

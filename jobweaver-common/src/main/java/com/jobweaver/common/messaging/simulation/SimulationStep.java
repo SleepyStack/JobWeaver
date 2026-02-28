@@ -1,4 +1,4 @@
-package com.jobweaver.api.entity.simulation;
+package com.jobweaver.common.messaging.simulation;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;

@@ -1,6 +1,5 @@
-package com.jobweaver.api.kafka;
+package com.jobweaver.jobweaverscheduler.kafka;
 
-import com.jobweaver.common.messaging.events.JobCreatedEvent;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,20 +20,28 @@ public class KafkaProducerConfig {
     private String bootstrapServers;
 
     @Bean
-    public ProducerFactory<String, JobCreatedEvent> producerFactory(){
+    public ProducerFactory<String, Object> producerFactory() {
+
         Map<String, Object> config = new HashMap<>();
-        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,bootstrapServers);
+
+        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonJsonSerializer.class);
+
         config.put(JacksonJsonSerializer.ADD_TYPE_INFO_HEADERS, false);
         config.put(ProducerConfig.ACKS_CONFIG, "all");
         config.put(ProducerConfig.RETRIES_CONFIG, 5);
         config.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
 
+        config.put(ProducerConfig.LINGER_MS_CONFIG, 5);
+
         return new DefaultKafkaProducerFactory<>(config);
     }
+
     @Bean
-    public KafkaTemplate<String, JobCreatedEvent> kafkaTemplate(){
-        return new KafkaTemplate<>(producerFactory());
+    public KafkaTemplate<String, Object> kafkaTemplate(
+            ProducerFactory<String, Object> producerFactory) {
+
+        return new KafkaTemplate<>(producerFactory);
     }
 }
