@@ -1,9 +1,10 @@
 CREATE TABLE execution_attempts (
                                     event_id      UUID PRIMARY KEY,
                                     job_id        UUID NOT NULL,
+                                    trace_id      VARCHAR(64) NOT NULL,
                                     started_at    TIMESTAMPTZ NOT NULL,
                                     finished_at   TIMESTAMPTZ,
-                                    outcome       VARCHAR(20) NOT NULL,
+                                    outcome       VARCHAR(20),
                                     error_message TEXT
 );
 
@@ -15,4 +16,4 @@ CREATE INDEX idx_execution_attempts_started_at
 
 ALTER TABLE execution_attempts
     ADD CONSTRAINT chk_execution_outcome
-        CHECK (outcome IN ('SUCCESS', 'FAILURE'));
+        CHECK (outcome IN ('RUNNING', 'SUCCESS', 'FAILURE'));

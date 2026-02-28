@@ -3,7 +3,7 @@ spring:
     name: jobweaver-worker
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/jobweaver
+    url: jdbc:postgresql://localhost:5434/jobweaver_worker
     username: jobweaver
     password: jobweaver
 
@@ -35,3 +35,15 @@ management:
     web:
       exposure:
         include: health,info
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+  datasource:
+    url: jdbc:postgresql://postgres-worker:5432/jobweaver_worker
+
+  kafka:
+    bootstrap-servers: kafka:29092

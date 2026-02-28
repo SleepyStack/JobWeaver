@@ -32,3 +32,15 @@ management:
     web:
       exposure:
         include: health,info
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+  datasource:
+    url: jdbc:postgresql://postgres-api:5432/jobweaver_api?options=-c%20TimeZone=Asia/Kolkata
+
+  kafka:
+    bootstrap-servers: kafka:29092

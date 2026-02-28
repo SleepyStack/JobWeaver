@@ -2,6 +2,7 @@ package com.jobweaver.worker.entity;
 
 import com.jobweaver.common.messaging.enumeration.ExecutionOutcome;
 import jakarta.persistence.*;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
@@ -19,6 +20,7 @@ import java.util.UUID;
         }
 )
 @NoArgsConstructor
+@Getter
 public class ExecutionAttempt {
 
     @Id
@@ -36,10 +38,27 @@ public class ExecutionAttempt {
 
     private Instant finishedAt;
 
-    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private ExecutionOutcome outcome;
 
     @Column(length = 2000)
     private String errorMessage;
+
+    public ExecutionAttempt(UUID eventId, UUID jobId, String traceId, Instant startedAt, ExecutionOutcome outcome, String errorMessage) {
+        this.eventId = eventId;
+        this.jobId = jobId;
+        this.traceId = traceId;
+        this.startedAt = startedAt;
+        this.outcome = outcome;
+        this.errorMessage = errorMessage;
+    }
+    public void markSuccess(){
+        this.outcome = ExecutionOutcome.SUCCESS;
+        this.finishedAt = Instant.now();
+    }
+    public void markFailure(String errorMessage){
+        this.outcome = ExecutionOutcome.FAILURE;
+        this.finishedAt = Instant.now();
+        this.errorMessage = errorMessage;
+    }
 }

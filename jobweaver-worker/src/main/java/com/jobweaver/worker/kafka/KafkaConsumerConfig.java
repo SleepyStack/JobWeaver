@@ -1,6 +1,8 @@
 package com.jobweaver.worker.kafka;
 
 import com.jobweaver.common.messaging.events.RunJobEvent;
+import com.jobweaver.worker.kafka.async.ConsumerRebalanceHandler;
+import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,7 +20,10 @@ import java.util.Map;
 
 @Configuration
 @EnableKafka
+@RequiredArgsConstructor
 public class KafkaConsumerConfig {
+
+    private final ConsumerRebalanceHandler rebalanceHandler;
 
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
@@ -64,6 +69,8 @@ public class KafkaConsumerConfig {
 
         factory.getContainerProperties()
                 .setAckMode(ContainerProperties.AckMode.MANUAL);
+        factory.getContainerProperties()
+                .setConsumerRebalanceListener(rebalanceHandler);
 
         return factory;
     }

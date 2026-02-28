@@ -2,6 +2,8 @@ version: '3.9'
 
 services:
 
+  # ── Databases ─────────────────────────────────────────────
+
   postgres-api:
     image: postgres:16
     container_name: jobweaver-postgres-api
@@ -38,6 +40,26 @@ services:
       timeout: 5s
       retries: 5
 
+  postgres-worker:
+    image: postgres:16
+    container_name: jobweaver-postgres-worker
+    environment:
+      POSTGRES_DB: jobweaver_worker
+      POSTGRES_USER: jobweaver
+      POSTGRES_PASSWORD: jobweaver
+      TZ: Asia/Kolkata
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_worker_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jobweaver"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Messaging ─────────────────────────────────────────────
+
   zookeeper:
     image: confluentinc/cp-zookeeper:7.6.1
     container_name: jobweaver-zookeeper
@@ -65,7 +87,10 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_HEAP_OPTS: "-Xmx512M -Xms512M"
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     healthcheck:
@@ -74,7 +99,77 @@ services:
       timeout: 10s
       retries: 5
 
+  # ── Application Services ──────────────────────────────────
+
+  jobweaver-api:
+    build:
+      context: ./jobweaver-api
+      dockerfile: Dockerfile
+    container_name: jobweaver-api
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      postgres-api:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      start_period: 40s
+      retries: 3
+
+  jobweaver-scheduler:
+    build:
+      context: ./jobweaver-scheduler
+      dockerfile: Dockerfile
+    container_name: jobweaver-scheduler
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      postgres-scheduler:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      jobweaver-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      start_period: 40s
+      retries: 3
+
+  jobweaver-worker:
+    build:
+      context: ./jobweaver-worker
+      dockerfile: Dockerfile
+    container_name: jobweaver-worker
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      postgres-worker:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      jobweaver-scheduler:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      start_period: 40s
+      retries: 3
+
 volumes:
   postgres_api_data:
   postgres_scheduler_data:
+  postgres_worker_data:
   kafka_data:

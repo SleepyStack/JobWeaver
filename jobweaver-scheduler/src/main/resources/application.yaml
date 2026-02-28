@@ -35,3 +35,15 @@ management:
     web:
       exposure:
         include: health,info
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+  datasource:
+    url: jdbc:postgresql://postgres-scheduler:5432/jobweaver_scheduler
+
+  kafka:
+    bootstrap-servers: kafka:29092

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <property name="SERVICE_NAME" value="jobweaver-api"/>
+
+    <property name="LOG_PATTERN"
+              value="%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} [%thread] %-5level [service=${SERVICE_NAME}] [traceId=%X{traceId}] [jobId=%X{jobId}] %logger{36} — %msg%n"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Suppress noisy framework loggers -->
+    <logger name="org.apache.kafka" level="WARN"/>
+    <logger name="org.hibernate.SQL" level="DEBUG"/>
+    <logger name="org.hibernate.type.descriptor.sql" level="TRACE"/>
+    <logger name="org.springframework.kafka" level="INFO"/>
+    <logger name="org.flywaydb" level="INFO"/>
+
+    <!-- Application loggers -->
+    <logger name="com.jobweaver.api" level="DEBUG"/>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+</configuration>

@@ -1,7 +1,9 @@
 package com.jobweaver.api.kafka;
 
+import com.jobweaver.api.exceptions.EventPublishException;
 import com.jobweaver.common.messaging.events.JobCreatedEvent;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -9,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JobEventPublisher {
@@ -38,6 +41,13 @@ public class JobEventPublisher {
                 eventId.getBytes(StandardCharsets.UTF_8)
         );
 
-        kafkaTemplate.send(record);
+        try {
+            kafkaTemplate.send(record).get();
+        } catch (Exception ex) {
+            log.error("Failed to publish JobCreatedEvent to topic={} jobId={}", topic, event.jobId(), ex);
+            throw new EventPublishException(
+                    "Failed to publish event for job " + event.jobId(),
+                    topic, event.jobId(), ex);
+        }
     }
 }
