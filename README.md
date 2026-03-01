@@ -244,6 +244,55 @@ GET /api/jobs?type=SIMULATION&page=0&size=20
 | `HTTP_CALL` | `url` (String), `latencyMs` (int) | Simulates HTTP latency via sleep |
 | `FAIL` | `message` (String) | Throws a failure exception, halting execution |
 
+### Internal Endpoints (Lifecycle Tracking)
+
+These endpoints are exposed directly by the scheduler and worker for observing the full job lifecycle. They are not part of the public API gateway.
+
+#### Scheduler (`:8081`)
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/internal/jobs/{id}/status` | Execution status for a single job |
+| `GET` | `/internal/jobs` | List all job executions |
+| `GET` | `/internal/jobs?status=PENDING` | Filter executions by status (`PENDING`, `RUNNING`, `COMPLETED`, `FAILED`) |
+
+**Example response (`GET /internal/jobs/{id}/status`):**
+
+```json
+{
+  "jobId": "a1b2c3d4-...",
+  "traceId": "e5f6g7h8-...",
+  "jobStatus": "COMPLETED",
+  "retryCount": 0,
+  "maxRetries": 3,
+  "nextRunAt": null,
+  "updatedAt": "2026-03-01T06:17:00Z",
+  "lastError": null
+}
+```
+
+#### Worker (`:8082`)
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/internal/executions/{jobId}` | Execution attempt history for a job (newest first) |
+
+**Example response:**
+
+```json
+[
+  {
+    "eventId": "f1e2d3c4-...",
+    "jobId": "a1b2c3d4-...",
+    "traceId": "e5f6g7h8-...",
+    "outcome": "SUCCESS",
+    "startedAt": "2026-03-01T06:16:55Z",
+    "finishedAt": "2026-03-01T06:17:00Z",
+    "errorMessage": null
+  }
+]
+```
+
 ---
 
 ## Local Setup
@@ -253,10 +302,11 @@ GET /api/jobs?type=SIMULATION&page=0&size=20
 - **Java 21** (JDK)
 - **Maven 3.x**
 - **Docker** and **Docker Compose**
+- **Postman** (optional, for the included test collection)
 
 ### Step 1 -- Build the Project
 
-Build all modules from the project root:
+Build all modules from the project root. **This must be done before starting Docker**, as the Dockerfiles copy the built JARs from each module's `target/` directory.
 
 ```bash
 mvn clean package -DskipTests
@@ -269,7 +319,7 @@ This compiles `jobweaver-common`, `jobweaver-api`, `jobweaver-scheduler`, and `j
 Launch all services using Docker Compose:
 
 ```bash
-docker-compose up --build
+docker compose up -d --build
 ```
 
 This starts:
@@ -282,8 +332,8 @@ This starts:
 | `zookeeper` | 2181 | Kafka coordination |
 | `kafka` | 9092 | Message broker |
 | `jobweaver-api` | 8080 | REST API |
-| `jobweaver-scheduler` | 8081 | Scheduler service |
-| `jobweaver-worker` | 8082 | Worker service |
+| `jobweaver-scheduler` | 8081 | Scheduler service (+ internal status endpoints) |
+| `jobweaver-worker` | 8082 | Worker service (+ internal execution history endpoint) |
 
 Docker Compose activates the `docker` Spring profile, which overrides database hosts and Kafka bootstrap servers to use Docker network hostnames.
 
@@ -297,7 +347,11 @@ curl http://localhost:8081/actuator/health
 curl http://localhost:8082/actuator/health
 ```
 
-### Step 4 -- Submit a Test Job
+### Step 4 -- Submit and Track a Job
+
+You can use the included **Postman collection** ([`JobWeaver.postman_collection.json`](JobWeaver.postman_collection.json)) which has pre-built requests for job submission, lifecycle tracking, and health checks. Import it into Postman and the collection variables (`api_url`, `scheduler_url`, `worker_url`) are pre-configured.
+
+Or submit a test job manually:
 
 ```bash
 curl -X POST http://localhost:8080/api/jobs \
@@ -315,12 +369,22 @@ curl -X POST http://localhost:8080/api/jobs \
   }'
 ```
 
+Then track the lifecycle using the internal endpoints:
+
+```bash
+# Check execution status on the scheduler
+curl http://localhost:8081/internal/jobs/{jobId}/status
+
+# View execution attempts on the worker
+curl http://localhost:8082/internal/executions/{jobId}
+```
+
 ### Step 5 -- Monitor Execution
 
 Observe logs across all services:
 
 ```bash
-docker-compose logs -f jobweaver-api jobweaver-scheduler jobweaver-worker
+docker compose logs -f jobweaver-api jobweaver-scheduler jobweaver-worker
 ```
 
 The structured logging output includes `traceId` and `jobId` for tracing the job across services.

@@ -88,7 +88,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"jobType\": \"SIMULATION\",\n  \"payload\": {\n    \"steps\": [\n      { \"type\": \"LOG\", \"message\": \"Starting simulation\" },\n      { \"type\": \"SLEEP\", \"durationMs\": 2000 },\n      { \"type\": \"COMPUTE\", \"iterations\": 100000 },\n      { \"type\": \"LOG\", \"message\": \"Simulation complete\" }\n    ]\n  },\n  \"maxRetryCount\": 3\n}"
+                            "raw": "{\n  \"jobType\": \"SIMULATION\",\n  \"payload\": {\n    \"steps\": [\n      { \"action\": \"LOG\", \"message\": \"Starting simulation\" },\n      { \"action\": \"SLEEP\", \"durationMs\": 2000 },\n      { \"action\": \"COMPUTE\", \"iterations\": 100000 },\n      { \"action\": \"LOG\", \"message\": \"Simulation complete\" }\n    ]\n  },\n  \"maxRetryCount\": 3\n}"
                         },
                         "url": "{{api_url}}/api/jobs"
                     }
@@ -123,7 +123,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"jobType\": \"SIMULATION\",\n  \"payload\": {\n    \"steps\": [\n      { \"type\": \"LOG\", \"message\": \"About to fail\" },\n      { \"type\": \"FAIL\" }\n    ]\n  },\n  \"maxRetryCount\": 2\n}"
+                            "raw": "{\n  \"jobType\": \"SIMULATION\",\n  \"payload\": {\n    \"steps\": [\n      { \"action\": \"LOG\", \"message\": \"About to fail\" },\n      { \"action\": \"FAIL\", \"message\": \"simulated crash\" }\n    ]\n  },\n  \"maxRetryCount\": 2\n}"
                         },
                         "url": "{{api_url}}/api/jobs"
                     }
@@ -155,7 +155,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"jobType\": \"SIMULATION\",\n  \"payload\": {\n    \"steps\": [\n      { \"type\": \"FAIL\" }\n    ]\n  },\n  \"maxRetryCount\": 0\n}"
+                            "raw": "{\n  \"jobType\": \"SIMULATION\",\n  \"payload\": {\n    \"steps\": [\n      { \"action\": \"FAIL\", \"message\": \"immediate failure\" }\n    ]\n  },\n  \"maxRetryCount\": 0\n}"
                         },
                         "url": "{{api_url}}/api/jobs"
                     }
