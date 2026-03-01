@@ -1,5 +1,7 @@
 package com.jobweaver.jobweaverscheduler.kafka;
 
+import com.jobweaver.common.messaging.events.DeadLetterEvent;
+import com.jobweaver.common.messaging.events.RunJobEvent;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,8 +21,7 @@ public class KafkaProducerConfig {
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
 
-    @Bean
-    public ProducerFactory<String, Object> producerFactory() {
+    private Map<String, Object> producerConfigs() {
 
         Map<String, Object> config = new HashMap<>();
 
@@ -35,13 +36,28 @@ public class KafkaProducerConfig {
 
         config.put(ProducerConfig.LINGER_MS_CONFIG, 5);
 
-        return new DefaultKafkaProducerFactory<>(config);
+        return config;
     }
 
     @Bean
-    public KafkaTemplate<String, Object> kafkaTemplate(
-            ProducerFactory<String, Object> producerFactory) {
+    public ProducerFactory<String, RunJobEvent> runJobProducerFactory() {
+        return new DefaultKafkaProducerFactory<>(producerConfigs());
+    }
 
-        return new KafkaTemplate<>(producerFactory);
+    @Bean
+    public KafkaTemplate<String, RunJobEvent> runJobKafkaTemplate(
+            ProducerFactory<String, RunJobEvent> runJobProducerFactory) {
+        return new KafkaTemplate<>(runJobProducerFactory);
+    }
+
+    @Bean
+    public ProducerFactory<String, DeadLetterEvent> deadLetterProducerFactory() {
+        return new DefaultKafkaProducerFactory<>(producerConfigs());
+    }
+
+    @Bean
+    public KafkaTemplate<String, DeadLetterEvent> deadLetterKafkaTemplate(
+            ProducerFactory<String, DeadLetterEvent> deadLetterProducerFactory) {
+        return new KafkaTemplate<>(deadLetterProducerFactory);
     }
 }

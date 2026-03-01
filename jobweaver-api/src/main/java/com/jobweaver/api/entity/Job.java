@@ -16,9 +16,8 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "jobs",indexes = {@Index(name = "idx_jobs_trace_id", columnList = "traceId"),
-                            @Index(name = "idx_jobs_created_at", columnList = "createdAt")}
-)
+@Table(name = "jobs", indexes = { @Index(name = "idx_jobs_trace_id", columnList = "traceId"),
+        @Index(name = "idx_jobs_created_at", columnList = "createdAt") })
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor
 @Getter
@@ -33,15 +32,17 @@ public class Job {
     private JobType type;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb",  nullable = false)
+    @Column(columnDefinition = "jsonb", nullable = false)
     private SimulationInstruction instruction;
 
     @Column(nullable = false)
     private String traceId;
 
     @CreatedDate
+    @Column(nullable = false)
     private Instant createdAt;
     @LastModifiedDate
+    @Column(nullable = false)
     private Instant updatedAt;
 
     public Job(JobType type, SimulationInstruction instruction, String traceId) {
