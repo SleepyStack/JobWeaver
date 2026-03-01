@@ -1,0 +1,41 @@
+package com.jobweaver.jobweaverscheduler.service;
+
+import com.jobweaver.jobweaverscheduler.dto.JobExecutionResponse;
+import com.jobweaver.jobweaverscheduler.entity.JobStatus;
+import com.jobweaver.jobweaverscheduler.exception.JobNotFoundException;
+import com.jobweaver.jobweaverscheduler.repository.JobExecutionRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class JobExecutionQueryService {
+
+    private final JobExecutionRepository jobExecutionRepository;
+
+    @Transactional(readOnly = true)
+    public JobExecutionResponse getJobStatus(UUID jobId) {
+        return jobExecutionRepository.findById(jobId)
+                .map(JobExecutionResponse::from)
+                .orElseThrow(() -> new JobNotFoundException(jobId));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<JobExecutionResponse> listByStatus(JobStatus status, Pageable pageable) {
+        return jobExecutionRepository.findByJobStatus(status, pageable)
+                .map(JobExecutionResponse::from);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<JobExecutionResponse> listAll(Pageable pageable) {
+        return jobExecutionRepository.findAll(pageable)
+                .map(JobExecutionResponse::from);
+    }
+}

@@ -1,0 +1,420 @@
+{
+    "info": {
+        "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+        "name": "JobWeaver",
+        "description": "End-to-end test collection for the JobWeaver distributed job execution platform.\n\nServices:\n- API Gateway: :8080\n- Scheduler: :8081\n- Worker: :8082",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "api_url",
+            "value": "http://localhost:8080"
+        },
+        {
+            "key": "scheduler_url",
+            "value": "http://localhost:8081"
+        },
+        {
+            "key": "worker_url",
+            "value": "http://localhost:8082"
+        },
+        {
+            "key": "job_id",
+            "value": ""
+        },
+        {
+            "key": "trace_id",
+            "value": ""
+        }
+    ],
+    "item": [
+        {
+            "name": "Health Checks",
+            "item": [
+                {
+                    "name": "API Health",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{api_url}}/actuator/health"
+                    }
+                },
+                {
+                    "name": "Scheduler Health",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{scheduler_url}}/actuator/health"
+                    }
+                },
+                {
+                    "name": "Worker Health",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{worker_url}}/actuator/health"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Job Submission",
+            "item": [
+                {
+                    "name": "Submit Job (Success)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "if (pm.response.code === 202) {",
+                                    "    var json = pm.response.json();",
+                                    "    pm.collectionVariables.set('job_id', json.jobId);",
+                                    "    pm.collectionVariables.set('trace_id', json.traceId);",
+                                    "    pm.test('Job accepted with jobId and traceId', function() {",
+                                    "        pm.expect(json.jobId).to.not.be.undefined;",
+                                    "        pm.expect(json.traceId).to.not.be.undefined;",
+                                    "    });",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"jobType\": \"SIMULATION\",\n  \"payload\": {\n    \"steps\": [\n      { \"action\": \"LOG\", \"message\": \"Starting simulation\" },\n      { \"action\": \"SLEEP\", \"durationMs\": 2000 },\n      { \"action\": \"COMPUTE\", \"iterations\": 100000 },\n      { \"action\": \"LOG\", \"message\": \"Simulation complete\" }\n    ]\n  },\n  \"maxRetryCount\": 3\n}"
+                        },
+                        "url": "{{api_url}}/api/jobs"
+                    }
+                },
+                {
+                    "name": "Submit Job (Will Fail & Retry)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "if (pm.response.code === 202) {",
+                                    "    var json = pm.response.json();",
+                                    "    pm.collectionVariables.set('job_id', json.jobId);",
+                                    "    pm.collectionVariables.set('trace_id', json.traceId);",
+                                    "    pm.test('Failing job accepted', function() {",
+                                    "        pm.expect(json.jobId).to.not.be.undefined;",
+                                    "    });",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"jobType\": \"SIMULATION\",\n  \"payload\": {\n    \"steps\": [\n      { \"action\": \"LOG\", \"message\": \"About to fail\" },\n      { \"action\": \"FAIL\", \"message\": \"simulated crash\" }\n    ]\n  },\n  \"maxRetryCount\": 2\n}"
+                        },
+                        "url": "{{api_url}}/api/jobs"
+                    }
+                },
+                {
+                    "name": "Submit Job (Immediate DLQ)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "if (pm.response.code === 202) {",
+                                    "    var json = pm.response.json();",
+                                    "    pm.collectionVariables.set('job_id', json.jobId);",
+                                    "    pm.collectionVariables.set('trace_id', json.traceId);",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"jobType\": \"SIMULATION\",\n  \"payload\": {\n    \"steps\": [\n      { \"action\": \"FAIL\", \"message\": \"immediate failure\" }\n    ]\n  },\n  \"maxRetryCount\": 0\n}"
+                        },
+                        "url": "{{api_url}}/api/jobs"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "API Queries",
+            "item": [
+                {
+                    "name": "Get Job by ID",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{api_url}}/api/jobs/{{job_id}}"
+                    }
+                },
+                {
+                    "name": "List All Jobs",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{api_url}}/api/jobs?page=0&size=20",
+                            "host": [
+                                "{{api_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "jobs"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "20"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "List Jobs by Type",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{api_url}}/api/jobs?type=SIMULATION&page=0&size=20",
+                            "host": [
+                                "{{api_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "jobs"
+                            ],
+                            "query": [
+                                {
+                                    "key": "type",
+                                    "value": "SIMULATION"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "20"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Lifecycle Tracking",
+            "description": "Query the scheduler and worker directly to observe the full job lifecycle: submission → scheduling → execution → completion/failure/retry.",
+            "item": [
+                {
+                    "name": "Get Execution Status (Scheduler)",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{scheduler_url}}/internal/jobs/{{job_id}}/status"
+                    }
+                },
+                {
+                    "name": "List All Executions (Scheduler)",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{scheduler_url}}/internal/jobs?page=0&size=20",
+                            "host": [
+                                "{{scheduler_url}}"
+                            ],
+                            "path": [
+                                "internal",
+                                "jobs"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "20"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "List PENDING Jobs",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{scheduler_url}}/internal/jobs?status=PENDING&page=0&size=20",
+                            "host": [
+                                "{{scheduler_url}}"
+                            ],
+                            "path": [
+                                "internal",
+                                "jobs"
+                            ],
+                            "query": [
+                                {
+                                    "key": "status",
+                                    "value": "PENDING"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "20"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "List RUNNING Jobs",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{scheduler_url}}/internal/jobs?status=RUNNING&page=0&size=20",
+                            "host": [
+                                "{{scheduler_url}}"
+                            ],
+                            "path": [
+                                "internal",
+                                "jobs"
+                            ],
+                            "query": [
+                                {
+                                    "key": "status",
+                                    "value": "RUNNING"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "20"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "List COMPLETED Jobs",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{scheduler_url}}/internal/jobs?status=COMPLETED&page=0&size=20",
+                            "host": [
+                                "{{scheduler_url}}"
+                            ],
+                            "path": [
+                                "internal",
+                                "jobs"
+                            ],
+                            "query": [
+                                {
+                                    "key": "status",
+                                    "value": "COMPLETED"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "20"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "List FAILED Jobs",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{scheduler_url}}/internal/jobs?status=FAILED&page=0&size=20",
+                            "host": [
+                                "{{scheduler_url}}"
+                            ],
+                            "path": [
+                                "internal",
+                                "jobs"
+                            ],
+                            "query": [
+                                {
+                                    "key": "status",
+                                    "value": "FAILED"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "20"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Execution Attempts (Worker)",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{worker_url}}/internal/executions/{{job_id}}?page=0&size=20",
+                            "host": [
+                                "{{worker_url}}"
+                            ],
+                            "path": [
+                                "internal",
+                                "executions",
+                                "{{job_id}}"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "20"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
