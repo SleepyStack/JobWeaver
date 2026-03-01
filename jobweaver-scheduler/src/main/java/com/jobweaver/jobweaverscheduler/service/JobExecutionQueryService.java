@@ -6,10 +6,11 @@ import com.jobweaver.jobweaverscheduler.exception.JobNotFoundException;
 import com.jobweaver.jobweaverscheduler.repository.JobExecutionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -27,18 +28,14 @@ public class JobExecutionQueryService {
     }
 
     @Transactional(readOnly = true)
-    public List<JobExecutionResponse> listByStatus(JobStatus status) {
-        return jobExecutionRepository.findByJobStatus(status)
-                .stream()
-                .map(JobExecutionResponse::from)
-                .toList();
+    public Page<JobExecutionResponse> listByStatus(JobStatus status, Pageable pageable) {
+        return jobExecutionRepository.findByJobStatus(status, pageable)
+                .map(JobExecutionResponse::from);
     }
 
     @Transactional(readOnly = true)
-    public List<JobExecutionResponse> listAll() {
-        return jobExecutionRepository.findAll()
-                .stream()
-                .map(JobExecutionResponse::from)
-                .toList();
+    public Page<JobExecutionResponse> listAll(Pageable pageable) {
+        return jobExecutionRepository.findAll(pageable)
+                .map(JobExecutionResponse::from);
     }
 }

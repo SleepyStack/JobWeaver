@@ -4,10 +4,11 @@ import com.jobweaver.worker.dto.ExecutionAttemptResponse;
 import com.jobweaver.worker.repository.ExecutionAttemptRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -18,10 +19,8 @@ public class ExecutionAttemptQueryService {
     private final ExecutionAttemptRepository executionAttemptRepository;
 
     @Transactional(readOnly = true)
-    public List<ExecutionAttemptResponse> getAttemptsByJobId(UUID jobId) {
-        return executionAttemptRepository.findByJobIdOrderByStartedAtDesc(jobId)
-                .stream()
-                .map(ExecutionAttemptResponse::from)
-                .toList();
+    public Page<ExecutionAttemptResponse> getAttemptsByJobId(UUID jobId, Pageable pageable) {
+        return executionAttemptRepository.findByJobId(jobId, pageable)
+                .map(ExecutionAttemptResponse::from);
     }
 }

@@ -10,6 +10,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
 import java.util.List;
@@ -21,48 +25,54 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class ExecutionAttemptQueryServiceTest {
 
-    @Mock
-    private ExecutionAttemptRepository executionAttemptRepository;
+        @Mock
+        private ExecutionAttemptRepository executionAttemptRepository;
 
-    @InjectMocks
-    private ExecutionAttemptQueryService queryService;
+        @InjectMocks
+        private ExecutionAttemptQueryService queryService;
 
-    @Test
-    @DisplayName("returns execution attempts for a job ordered by startedAt desc")
-    void returnsAttemptsForJob() {
-        UUID jobId = UUID.randomUUID();
-        UUID eventId1 = UUID.randomUUID();
-        UUID eventId2 = UUID.randomUUID();
+        private final Pageable pageable = PageRequest.of(0, 20);
 
-        ExecutionAttempt attempt1 = new ExecutionAttempt(
-                eventId1, jobId, "trace-1", Instant.now().minusSeconds(60),
-                ExecutionOutcome.FAILURE, "step failed");
-        ExecutionAttempt attempt2 = new ExecutionAttempt(
-                eventId2, jobId, "trace-1", Instant.now(),
-                ExecutionOutcome.SUCCESS, null);
+        @Test
+        @DisplayName("returns execution attempts for a job paginated by startedAt desc")
+        void returnsAttemptsForJob() {
+                UUID jobId = UUID.randomUUID();
+                UUID eventId1 = UUID.randomUUID();
+                UUID eventId2 = UUID.randomUUID();
 
-        when(executionAttemptRepository.findByJobIdOrderByStartedAtDesc(jobId))
-                .thenReturn(List.of(attempt2, attempt1));
+                ExecutionAttempt attempt1 = new ExecutionAttempt(
+                                eventId1, jobId, "trace-1", Instant.now().minusSeconds(60),
+                                ExecutionOutcome.FAILURE, "step failed");
+                ExecutionAttempt attempt2 = new ExecutionAttempt(
+                                eventId2, jobId, "trace-1", Instant.now(),
+                                ExecutionOutcome.SUCCESS, null);
 
-        List<ExecutionAttemptResponse> results = queryService.getAttemptsByJobId(jobId);
+                Page<ExecutionAttempt> page = new PageImpl<>(List.of(attempt2, attempt1), pageable, 2);
+                when(executionAttemptRepository.findByJobId(jobId, pageable))
+                                .thenReturn(page);
 
-        assertThat(results).hasSize(2);
-        assertThat(results.get(0).eventId()).isEqualTo(eventId2);
-        assertThat(results.get(0).outcome()).isEqualTo(ExecutionOutcome.SUCCESS);
-        assertThat(results.get(1).eventId()).isEqualTo(eventId1);
-        assertThat(results.get(1).outcome()).isEqualTo(ExecutionOutcome.FAILURE);
-        assertThat(results.get(1).errorMessage()).isEqualTo("step failed");
-    }
+                Page<ExecutionAttemptResponse> results = queryService.getAttemptsByJobId(jobId, pageable);
 
-    @Test
-    @DisplayName("returns empty list for unknown job")
-    void returnsEmptyForUnknownJob() {
-        UUID unknownJobId = UUID.randomUUID();
-        when(executionAttemptRepository.findByJobIdOrderByStartedAtDesc(unknownJobId))
-                .thenReturn(List.of());
+                assertThat(results.getContent()).hasSize(2);
+                assertThat(results.getContent().get(0).eventId()).isEqualTo(eventId2);
+                assertThat(results.getContent().get(0).outcome()).isEqualTo(ExecutionOutcome.SUCCESS);
+                assertThat(results.getContent().get(1).eventId()).isEqualTo(eventId1);
+                assertThat(results.getContent().get(1).outcome()).isEqualTo(ExecutionOutcome.FAILURE);
+                assertThat(results.getContent().get(1).errorMessage()).isEqualTo("step failed");
+                assertThat(results.getTotalElements()).isEqualTo(2);
+        }
 
-        List<ExecutionAttemptResponse> results = queryService.getAttemptsByJobId(unknownJobId);
+        @Test
+        @DisplayName("returns empty page for unknown job")
+        void returnsEmptyForUnknownJob() {
+                UUID unknownJobId = UUID.randomUUID();
+                Page<ExecutionAttempt> emptyPage = new PageImpl<>(List.of(), pageable, 0);
+                when(executionAttemptRepository.findByJobId(unknownJobId, pageable))
+                                .thenReturn(emptyPage);
 
-        assertThat(results).isEmpty();
-    }
+                Page<ExecutionAttemptResponse> results = queryService.getAttemptsByJobId(unknownJobId, pageable);
+
+                assertThat(results.getContent()).isEmpty();
+                assertThat(results.getTotalElements()).isZero();
+        }
 }

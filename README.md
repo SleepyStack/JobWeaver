@@ -246,15 +246,15 @@ GET /api/jobs?type=SIMULATION&page=0&size=20
 
 ### Internal Endpoints (Lifecycle Tracking)
 
-These endpoints are exposed directly by the scheduler and worker for observing the full job lifecycle. They are not part of the public API gateway.
+These endpoints are exposed directly by the scheduler and worker for observing the full job lifecycle. They are not part of the public API gateway. List endpoints support pagination via `page` and `size` query parameters (defaults: `page=0`, `size=20`).
 
 #### Scheduler (`:8081`)
 
 | Method | Endpoint | Description |
 |---|---|---|
 | `GET` | `/internal/jobs/{id}/status` | Execution status for a single job |
-| `GET` | `/internal/jobs` | List all job executions |
-| `GET` | `/internal/jobs?status=PENDING` | Filter executions by status (`PENDING`, `RUNNING`, `COMPLETED`, `FAILED`) |
+| `GET` | `/internal/jobs?page=0&size=20` | List all job executions (paginated) |
+| `GET` | `/internal/jobs?status=PENDING&page=0&size=20` | Filter executions by status (`PENDING`, `RUNNING`, `COMPLETED`, `FAILED`) |
 
 **Example response (`GET /internal/jobs/{id}/status`):**
 
@@ -271,26 +271,38 @@ These endpoints are exposed directly by the scheduler and worker for observing t
 }
 ```
 
+**Example paginated response (`GET /internal/jobs`):**
+
+```json
+{
+  "content": [ ... ],
+  "page": { "size": 20, "number": 0, "totalElements": 42, "totalPages": 3 }
+}
+```
+
 #### Worker (`:8082`)
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `GET` | `/internal/executions/{jobId}` | Execution attempt history for a job (newest first) |
+| `GET` | `/internal/executions/{jobId}?page=0&size=20` | Execution attempt history for a job (paginated, newest first) |
 
 **Example response:**
 
 ```json
-[
-  {
-    "eventId": "f1e2d3c4-...",
-    "jobId": "a1b2c3d4-...",
-    "traceId": "e5f6g7h8-...",
-    "outcome": "SUCCESS",
-    "startedAt": "2026-03-01T06:16:55Z",
-    "finishedAt": "2026-03-01T06:17:00Z",
-    "errorMessage": null
-  }
-]
+{
+  "content": [
+    {
+      "eventId": "f1e2d3c4-...",
+      "jobId": "a1b2c3d4-...",
+      "traceId": "e5f6g7h8-...",
+      "outcome": "SUCCESS",
+      "startedAt": "2026-03-01T06:16:55Z",
+      "finishedAt": "2026-03-01T06:17:00Z",
+      "errorMessage": null
+    }
+  ],
+  "page": { "size": 20, "number": 0, "totalElements": 1, "totalPages": 1 }
+}
 ```
 
 ---
@@ -392,7 +404,7 @@ The structured logging output includes `traceId` and `jobId` for tracing the job
 ### Stopping the Stack
 
 ```bash
-docker-compose down -v
+docker compose down -v
 ```
 
 The `-v` flag removes named volumes, clearing all database state.

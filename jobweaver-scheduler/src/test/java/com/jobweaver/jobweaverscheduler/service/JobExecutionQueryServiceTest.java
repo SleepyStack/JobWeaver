@@ -15,6 +15,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
 import java.util.List;
@@ -36,11 +40,13 @@ class JobExecutionQueryServiceTest {
 
     private UUID jobId;
     private SimulationInstruction instruction;
+    private Pageable pageable;
 
     @BeforeEach
     void setUp() {
         jobId = UUID.randomUUID();
         instruction = new SimulationInstruction(List.of(new LogStep("test")));
+        pageable = PageRequest.of(0, 20);
     }
 
     private JobExecution createExecution(UUID id, JobStatus status, int retryCount, int maxRetries) {
@@ -90,24 +96,28 @@ class JobExecutionQueryServiceTest {
 
         @Test
         @DisplayName("returns only jobs matching the given status")
-        void filtersbyStatus() {
+        void filtersByStatus() {
             JobExecution pending = createExecution(UUID.randomUUID(), JobStatus.PENDING, 0, 3);
-            when(jobExecutionRepository.findByJobStatus(JobStatus.PENDING)).thenReturn(List.of(pending));
+            Page<JobExecution> page = new PageImpl<>(List.of(pending), pageable, 1);
+            when(jobExecutionRepository.findByJobStatus(JobStatus.PENDING, pageable)).thenReturn(page);
 
-            List<JobExecutionResponse> results = queryService.listByStatus(JobStatus.PENDING);
+            Page<JobExecutionResponse> results = queryService.listByStatus(JobStatus.PENDING, pageable);
 
-            assertThat(results).hasSize(1);
-            assertThat(results.get(0).jobStatus()).isEqualTo(JobStatus.PENDING);
+            assertThat(results.getContent()).hasSize(1);
+            assertThat(results.getContent().get(0).jobStatus()).isEqualTo(JobStatus.PENDING);
+            assertThat(results.getTotalElements()).isEqualTo(1);
         }
 
         @Test
-        @DisplayName("returns empty list when no jobs match")
+        @DisplayName("returns empty page when no jobs match")
         void returnsEmptyWhenNoMatch() {
-            when(jobExecutionRepository.findByJobStatus(JobStatus.FAILED)).thenReturn(List.of());
+            Page<JobExecution> emptyPage = new PageImpl<>(List.of(), pageable, 0);
+            when(jobExecutionRepository.findByJobStatus(JobStatus.FAILED, pageable)).thenReturn(emptyPage);
 
-            List<JobExecutionResponse> results = queryService.listByStatus(JobStatus.FAILED);
+            Page<JobExecutionResponse> results = queryService.listByStatus(JobStatus.FAILED, pageable);
 
-            assertThat(results).isEmpty();
+            assertThat(results.getContent()).isEmpty();
+            assertThat(results.getTotalElements()).isZero();
         }
     }
 
@@ -116,15 +126,17 @@ class JobExecutionQueryServiceTest {
     class ListAll {
 
         @Test
-        @DisplayName("returns all executions")
+        @DisplayName("returns all executions paginated")
         void returnsAll() {
             JobExecution a = createExecution(UUID.randomUUID(), JobStatus.PENDING, 0, 3);
             JobExecution b = createExecution(UUID.randomUUID(), JobStatus.COMPLETED, 0, 3);
-            when(jobExecutionRepository.findAll()).thenReturn(List.of(a, b));
+            Page<JobExecution> page = new PageImpl<>(List.of(a, b), pageable, 2);
+            when(jobExecutionRepository.findAll(pageable)).thenReturn(page);
 
-            List<JobExecutionResponse> results = queryService.listAll();
+            Page<JobExecutionResponse> results = queryService.listAll(pageable);
 
-            assertThat(results).hasSize(2);
+            assertThat(results.getContent()).hasSize(2);
+            assertThat(results.getTotalElements()).isEqualTo(2);
         }
     }
 }

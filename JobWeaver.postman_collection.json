@@ -245,7 +245,26 @@
                     "name": "List All Executions (Scheduler)",
                     "request": {
                         "method": "GET",
-                        "url": "{{scheduler_url}}/internal/jobs"
+                        "url": {
+                            "raw": "{{scheduler_url}}/internal/jobs?page=0&size=20",
+                            "host": [
+                                "{{scheduler_url}}"
+                            ],
+                            "path": [
+                                "internal",
+                                "jobs"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "20"
+                                }
+                            ]
+                        }
                     }
                 },
                 {
@@ -253,7 +272,7 @@
                     "request": {
                         "method": "GET",
                         "url": {
-                            "raw": "{{scheduler_url}}/internal/jobs?status=PENDING",
+                            "raw": "{{scheduler_url}}/internal/jobs?status=PENDING&page=0&size=20",
                             "host": [
                                 "{{scheduler_url}}"
                             ],
@@ -265,6 +284,14 @@
                                 {
                                     "key": "status",
                                     "value": "PENDING"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "20"
                                 }
                             ]
                         }
@@ -275,7 +302,7 @@
                     "request": {
                         "method": "GET",
                         "url": {
-                            "raw": "{{scheduler_url}}/internal/jobs?status=RUNNING",
+                            "raw": "{{scheduler_url}}/internal/jobs?status=RUNNING&page=0&size=20",
                             "host": [
                                 "{{scheduler_url}}"
                             ],
@@ -287,6 +314,14 @@
                                 {
                                     "key": "status",
                                     "value": "RUNNING"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "20"
                                 }
                             ]
                         }
@@ -297,7 +332,7 @@
                     "request": {
                         "method": "GET",
                         "url": {
-                            "raw": "{{scheduler_url}}/internal/jobs?status=COMPLETED",
+                            "raw": "{{scheduler_url}}/internal/jobs?status=COMPLETED&page=0&size=20",
                             "host": [
                                 "{{scheduler_url}}"
                             ],
@@ -309,6 +344,14 @@
                                 {
                                     "key": "status",
                                     "value": "COMPLETED"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "20"
                                 }
                             ]
                         }
@@ -319,7 +362,7 @@
                     "request": {
                         "method": "GET",
                         "url": {
-                            "raw": "{{scheduler_url}}/internal/jobs?status=FAILED",
+                            "raw": "{{scheduler_url}}/internal/jobs?status=FAILED&page=0&size=20",
                             "host": [
                                 "{{scheduler_url}}"
                             ],
@@ -331,6 +374,14 @@
                                 {
                                     "key": "status",
                                     "value": "FAILED"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "20"
                                 }
                             ]
                         }
@@ -340,7 +391,27 @@
                     "name": "Get Execution Attempts (Worker)",
                     "request": {
                         "method": "GET",
-                        "url": "{{worker_url}}/internal/executions/{{job_id}}"
+                        "url": {
+                            "raw": "{{worker_url}}/internal/executions/{{job_id}}?page=0&size=20",
+                            "host": [
+                                "{{worker_url}}"
+                            ],
+                            "path": [
+                                "internal",
+                                "executions",
+                                "{{job_id}}"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "20"
+                                }
+                            ]
+                        }
                     }
                 }
             ]

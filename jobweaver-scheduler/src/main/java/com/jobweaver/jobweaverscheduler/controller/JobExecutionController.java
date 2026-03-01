@@ -5,10 +5,13 @@ import com.jobweaver.jobweaverscheduler.entity.JobStatus;
 import com.jobweaver.jobweaverscheduler.service.JobExecutionQueryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -26,14 +29,16 @@ public class JobExecutionController {
     }
 
     @GetMapping
-    public ResponseEntity<List<JobExecutionResponse>> listJobs(
-            @RequestParam(required = false) JobStatus status) {
+    public ResponseEntity<Page<JobExecutionResponse>> listJobs(
+            @RequestParam(required = false) JobStatus status,
+            @PageableDefault(size = 20, sort = "updatedAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
-        List<JobExecutionResponse> result = (status != null)
-                ? jobExecutionQueryService.listByStatus(status)
-                : jobExecutionQueryService.listAll();
+        Page<JobExecutionResponse> result = (status != null)
+                ? jobExecutionQueryService.listByStatus(status, pageable)
+                : jobExecutionQueryService.listAll(pageable);
 
-        log.debug("Returning {} job executions (filter={})", result.size(), status);
+        log.debug("Returning {} job executions (filter={}, page={}, size={})",
+                result.getNumberOfElements(), status, pageable.getPageNumber(), pageable.getPageSize());
         return ResponseEntity.ok(result);
     }
 }
