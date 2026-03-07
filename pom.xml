@@ -19,6 +19,7 @@
     <modules>
         <!-- child modules will appear here -->
         <module>jobweaver-common</module>
+        <module>jobweaver-auth</module>
         <module>jobweaver-api</module>
         <module>jobweaver-worker</module>
         <module>jobweaver-scheduler</module>
